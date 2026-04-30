@@ -12,8 +12,12 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # 精准匹配
     if text == "123":
         await update.message.reply_text("1+2")
+        if text == "3":
+            await update.message.reply_text("right")
     elif text == "121":
         await update.message.reply_text("2+1")
+        if "?" in text:
+            await update.message.reply_text("what")
     elif text == "ppp":
         await update.message.reply_text("X1X4KING")
     elif text == "결제":
