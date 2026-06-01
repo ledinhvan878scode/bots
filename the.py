@@ -34,14 +34,17 @@ def handle_user_message(update: Update, context: CallbackContext):
     else:
         write_history(user.id, "[非文本消息]")
 
-    # 转发给管理员
+    # 先发送用户信息给管理员
+    info_text = f"📩 来自用户:\nID: {user.id}\n用户名: @{user.username}\n"
+    context.bot.send_message(chat_id=ADMIN_CHAT_ID, text=info_text)
+
+    # 再转发用户消息
     context.bot.forward_message(
         chat_id=ADMIN_CHAT_ID,
         from_chat_id=msg.chat_id,
         message_id=msg.message_id
     )
-
-
+    
 def reply_user(update: Update, context: CallbackContext):
     if update.effective_chat.id != ADMIN_CHAT_ID:
         return
