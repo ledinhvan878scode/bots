@@ -1,60 +1,115 @@
-import random
+from telegram.ext import Updater, MessageHandler, Filters, CommandHandler
 from telegram import Update
-from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
-TOKEN = "你的Bot Token"
-randdom = ''.join([str(random.randint(0, 9)) for _ in range(30)])
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("StarT")
-async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    text = update.message.text.strip()
-    # 精准匹配
-    if text == "12":
-        await update.message.reply_text("1+2")
-    if text == "확인":
-        await update.message.reply_text("USDT를 사용하여 결제해 주세요. 결제가 완료되면, 주문 번호를 다시 입력하면 주소를 보낼 수 있습니다 -------귀하의 주문 번호는:ZC420FY" + randdom + "'--------'주문 상태가 성공하면, 다시 한 번 주문 번호를 '미친 박사'에게 보내거나, 주문 링크를 제공한 보증인 또는 보증금을 낸 대리인에게 전달하십시오.")
-    if "확인" in text:
-        await update.message.reply_text("결제 수단을 선택해 주세요. 'TRC20'/'ETH'/'BTC'에 회신하시면 통일된 결제 주소를 받을 수 있습니다.")
-    elif text == "TRC20":
-        await update.message.reply_text("TLRsCgKxAzho4FNv659n6EjQVUjhW71KAp")
-    elif text == "trc20":
-        await update.message.reply_text("USDT-TRC20/TRX의 출금 주소는:\nTLRsCgKxAzho4FNv659n6EjQVUjhW71KAp")
-    elif text == "btc":
-        await update.message.reply_text("죄송합니다, 사장님, 현재는 지원되지 않습니다. 다른 결제 수단을 이용해 주시기 바랍니다.")
-    elif text == "BTC":
-        await update.message.reply_text("⚙️USDT-TRC20 또는 TRX 결제를 선택하십시오")
-    elif text == "eth":
-        await update.message.reply_text("⚙️죄송합니다, 사장님, 현재는 지원되지 않습니다. 다른 결제 수단을 이용해 주시기 바랍니다.")
-    elif text == "ETH":
-        await update.message.reply_text("USDT-TRC20 또는 TRX 결제를 선택하십시오")
-    elif text == "21":
-        await update.message.reply_text("2+1")
-    elif text == "ppp":
-        await update.message.reply_text("X1X4KING")
-    elif text == "5":
-        await update.message.reply_text(
-            "안녕하세요, 금액 203 USDT 입니다. 결제 확인하시겠습니까? '확인'을 입력하면 주문 번호를 제공하기 시작하며, 결제 후 주문 번호를 보관한 뒤 로봇에게 다시 전송하세요.")
-    elif text == "10":
-        await update.message.reply_text(
-            "안녕하세요, 금액 359 USDT 입니다. 결제 확인하시겠습니까? '확인'을 입력하면 주문 번호를 제공하기 시작하며, 결제 후 주문 번호를 보관한 뒤 로봇에게 다시 전송하세요.")
-    elif text == "20":
-        await update.message.reply_text(
-            "안녕하세요, 금액 624 USDT 입니다. 결제 확인하시겠습니까? '확인'을 입력하면 주문 번호를 제공하기 시작하며, 결제 후 주문 번호를 보관한 뒤 로봇에게 다시 전송하세요.")
-    elif text == "50":
-        await update.message.reply_text("박사나 대리인에게 연락하여 미리 준비하세요.")
-    elif text == "재고조회":
-        await update.message.reply_text("서울/강남/홍대/명동/동대문/광화문/인천/부산/해운대\n'재고 충분' 바로 주문 가능!\n주문이 진행 중이면, 서울과 인천 지역을 제외한 대부분의 지역에서는 24시간 내에 자동으로 GPS와 사진 정보가 전송됩니다!")
-    elif text == "구매":
-        await update.message.reply_text(
-            "구매할 수량을 입력하세요, 예를 들어 👽'5'/'10'/'20'/'50'👽. [구매하실 수량을 회신해 주십시오.]\n100 이상일 경우 담당자에게 연락하시거나 직접 Dr.Mad를 찾으십시오.")
-    elif len(text) == 37:
-        await update.message.reply_text("!해당 주문은 아직 결제가 확인되지 않았습니다!\n해당 주문 번호가 결제되지 않은 것으로 감지되었습니다. 결제 후 시스템이 자동으로 GPS 좌표와 사진을 전송합니다!!")
+from telegram.ext.callbackcontext import CallbackContext
+import datetime
+import os
+
+ADMIN_CHAT_ID = 123456789  # 管理员 chat_id
+HISTORY_FILE = "/chat_history.txt"
+
+blocked_users = set()
+
+
+def write_history(user_id, text):
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    line = f"id:{user_id} > ({timestamp}) {text}\n"
+
+    with open(HISTORY_FILE, "a", encoding="utf-8") as f:
+        f.write(line)
+
+    # 自动推送到 GitHub（可选）
+    # os.system("cd /root/telegram-chat-history && git add . && git commit -m 'update' && git push")
+
+
+def handle_user_message(update: Update, context: CallbackContext):
+    user = update.effective_user
+    msg = update.effective_message
+
+    if user.id in blocked_users:
+        return
+
+    # 写入 TXT
+    if msg.text:
+        write_history(user.id, msg.text)
     else:
-        await update.message.reply_text(
-            "안녕하세요, 이것은 자가 서비스 로봇 v1.11🤖 └|°ε°|┐ 🤖입니다. \n주문 후 자동으로 배송됩니다 --🛠️ ┗┫￣皿￣┣┛ 🛠️ '구매'를 입력해주세요. \n지역을 조회하려면 --📡 [|/ﾟ∇ﾟ|丿] 📡 '재고조회'를 입력하세요. \n문제가 있으면 박사님이나 대리인에게 문의하세요.")
+        write_history(user.id, "[非文本消息]")
+
+    # 转发给管理员
+    context.bot.forward_message(
+        chat_id=ADMIN_CHAT_ID,
+        from_chat_id=msg.chat_id,
+        message_id=msg.message_id
+    )
+
+
+def reply_user(update: Update, context: CallbackContext):
+    if update.effective_chat.id != ADMIN_CHAT_ID:
+        return
+
+    args = context.args
+    if len(args) < 2:
+        update.message.reply_text("用法：/reply 用户ID 内容")
+        return
+
+    user_id = int(args[0])
+    text = " ".join(args[1:])
+
+    context.bot.send_message(chat_id=user_id, text=text)
+    update.message.reply_text("已发送")
+
+
+def reply_photo(update: Update, context: CallbackContext):
+    if update.effective_chat.id != ADMIN_CHAT_ID:
+        return
+
+    args = context.args
+    if len(args) < 1:
+        update.message.reply_text("用法：/photo 用户ID")
+        return
+
+    user_id = int(args[0])
+
+    if update.message.photo:
+        file_id = update.message.photo[-1].file_id
+        context.bot.send_photo(chat_id=user_id, photo=file_id)
+        update.message.reply_text("图片已发送")
+    else:
+        update.message.reply_text("请附带一张图片")
+
+
+def block_user(update: Update, context: CallbackContext):
+    if update.effective_chat.id != ADMIN_CHAT_ID:
+        return
+
+    user_id = int(context.args[0])
+    blocked_users.add(user_id)
+    update.message.reply_text(f"已屏蔽用户 {user_id}")
+
+
+def unblock_user(update: Update, context: CallbackContext):
+    if update.effective_chat.id != ADMIN_CHAT_ID:
+        return
+
+    user_id = int(context.args[0])
+    blocked_users.discard(user_id)
+    update.message.reply_text(f"已解除屏蔽用户 {user_id}")
+
+
 def main():
-    app = ApplicationBuilder().token(TOKEN).build()
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
-    app.run_polling()
+    updater = Updater("YOUR_BOT_TOKEN", use_context=True)
+    dp = updater.dispatcher
+
+    dp.add_handler(MessageHandler(Filters.text & ~Filters.command, handle_user_message))
+    dp.add_handler(MessageHandler(Filters.photo, handle_user_message))
+
+    dp.add_handler(CommandHandler("reply", reply_user))
+    dp.add_handler(CommandHandler("photo", reply_photo))
+    dp.add_handler(CommandHandler("block", block_user))
+    dp.add_handler(CommandHandler("unblock", unblock_user))
+
+    updater.start_polling()
+    updater.idle()
+
+
 if __name__ == "__main__":
     main()
